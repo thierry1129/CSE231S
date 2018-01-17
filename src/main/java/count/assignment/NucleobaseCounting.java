@@ -31,7 +31,7 @@ import edu.wustl.cse231s.bioinformatics.Nucleobase;
 import midpoint.assignment.MidpointUtils;
 
 /**
- * @author __STUDENT_NAME__
+ * @author Terry Lyu
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
  */
 public class NucleobaseCounting {
