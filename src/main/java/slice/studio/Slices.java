@@ -53,36 +53,25 @@ public class Slices {
 	 * @return the created list of slices
 	 */
 	private static <T> List<Slice<T>> createNSlicesForArrayObject(T data, int numSlices) {
+		
 		List<Slice<T>> a = new ArrayList<Slice<T>>();
-
-		// Slice test = new Slice(data, 0, 0, 0);
-		int lwbd = 0;
 		int len = Array.getLength(data);
 		int remainder = len%numSlices;
-
 		int sliceLen  = len/numSlices;
-
 		int min = 0;
 		int max = sliceLen;
-
 		for (int i = 0 ; i < numSlices; i++) {
-			//min = min + sliceLen;
 			max = min + sliceLen;
 			if (i<remainder) {
 				max++;
 			}
 			Slice test = new Slice(data, i, min, max);
 			a.add(test);
-			min = max;
-			
+			min = max;			
 		}
- 
 
 
 		return a ;
-
-
-
 	}
 
 
