@@ -61,7 +61,20 @@ public class NucleobaseCounting {
 	 *         given chromosome
 	 */
 	public static int countRangeSequential(byte[] chromosome, Nucleobase targetNucleobase, int min, int maxExclusive) {
-		throw new NotYetImplementedException();
+		int result = 0;
+		for (int a = min; a < maxExclusive;a++) {
+
+
+			if (targetNucleobase.toByte() == chromosome[a]) {
+				result ++;
+			}
+
+
+
+		}
+		return result;
+
+
 	}
 
 	/**
@@ -79,7 +92,8 @@ public class NucleobaseCounting {
 	 *         given chromosome.
 	 */
 	public static int countSequential(byte[] chromosome, Nucleobase targetNucleobase) {
-		throw new NotYetImplementedException();
+		return countRangeSequential(chromosome,targetNucleobase,0,chromosome.length);
+
 	}
 
 	/**
@@ -100,7 +114,37 @@ public class NucleobaseCounting {
 	 */
 	public static int countParallelLowerUpperSplit(byte[] chromosome, Nucleobase targetNucleobase)
 			throws InterruptedException, ExecutionException {
-		throw new NotYetImplementedException();
+
+		final int firstHalf ;
+		final int secondHalf ;
+
+		final int[] arr = new int[2];
+		finish(() -> {
+
+			async(()-> {
+				for (int a = 0 ; a <chromosome.length/2 ;a++) {
+					if (targetNucleobase.toByte() == chromosome[a]) {
+						arr[0]++;
+					}
+				}
+
+			});
+
+			async(()-> {
+				for (int a = chromosome.length/2 ; a <chromosome.length ;a++) {
+					if (targetNucleobase.toByte() == chromosome[a]) {
+						arr[1]++;
+					}
+				}
+			});
+
+
+
+
+		});
+
+		return arr[0]+arr[1];
+
 	}
 
 	/**
