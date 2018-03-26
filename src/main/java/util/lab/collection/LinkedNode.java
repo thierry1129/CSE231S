@@ -31,10 +31,12 @@ import net.jcip.annotations.NotThreadSafe;
 
 	private final E value;
 	private LinkedNode<E> next;
+	private LinkedNode<E> prev;
 
 	public LinkedNode(E value, LinkedNode<E> next) {
 		this.value = value;
 		this.next = next;
+		
 	}
 
 	/**
@@ -45,6 +47,7 @@ import net.jcip.annotations.NotThreadSafe;
 	public LinkedNode<E> getNext() {
 		return next;
 	}
+	
 
 	/**
 	 * Sets the value of the next node of the given node
@@ -54,7 +57,7 @@ import net.jcip.annotations.NotThreadSafe;
 	public void setNext(LinkedNode<E> next) {
 		this.next = next;
 	}
-
+	
 	/**
 	 * Gets the value of the given node
 	 * 

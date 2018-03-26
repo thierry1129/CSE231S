@@ -30,7 +30,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -39,6 +41,7 @@ import count.assignment.rubric.CountRubric;
 import count.core.NucleobaseCountUtils;
 import edu.wustl.cse231s.bioinformatics.Nucleobase;
 import edu.wustl.cse231s.bioinformatics.io.resource.ChromosomeResource;
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 /**
  * @author Finn Voichick
@@ -61,6 +64,9 @@ public class DivideAndConquerTest {
 		this.threshold = Math.max(this.chromosome.length / thresholdDenom, 2);
 		this.truthAndBeautyCount = NucleobaseCountUtils.countSequential(chromosome, targetNucleobase);
 	}
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void test() {

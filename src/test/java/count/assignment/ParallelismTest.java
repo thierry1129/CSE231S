@@ -27,10 +27,13 @@ import static org.hamcrest.Matchers.is;
 import java.util.Arrays;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import count.assignment.rubric.CountRubric;
 import edu.wustl.cse231s.bioinformatics.Nucleobase;
+import edu.wustl.cse231s.junit.JUnitUtils;
 import edu.wustl.cse231s.v5.api.CheckedRunnable;
 import edu.wustl.cse231s.v5.bookkeep.BookkeepingUtils;
 import edu.wustl.cse231s.v5.impl.BookkeepingV5Impl;
@@ -71,6 +74,9 @@ public class ParallelismTest {
 		Arrays.fill(result, nucleobase.toByte());
 		return result;
 	}
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	@CountRubric(CountRubric.Category.LOWER_UPPER)

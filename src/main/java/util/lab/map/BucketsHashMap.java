@@ -26,6 +26,7 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.collections4.iterators.LazyIteratorChain;
@@ -53,15 +54,18 @@ public class BucketsHashMap<K, V> extends AbstractMap<K, V> {
 	 * hashcode of the entry's key. Note: this class is not thread-safe.
 	 */
 	@SuppressWarnings("unchecked")
+	// initliazed the buckets using parameter capacity, 
+	// in fact each bucket is an instance of linkednodescollection
 	public BucketsHashMap(int capacity) {
 		buckets = new Collection[capacity];
 		for (int i = 0; i < buckets.length; ++i) {
 			buckets[i] = new LinkedNodesCollection<>();
 		}
 	}
-
+// when the size is not set, the default size is 1024
 	public BucketsHashMap() {
 		this(1024);
+
 	}
 
 	/**
@@ -71,8 +75,10 @@ public class BucketsHashMap<K, V> extends AbstractMap<K, V> {
 	 * @param key
 	 * @return the index of the bucket the entry should go into
 	 */
+	
 	private int hash(Object key) {
-		throw new NotYetImplementedException();
+		int hashCode = key.hashCode();
+		return Math.floorMod(hashCode, buckets.length);
 	}
 
 	/**
@@ -82,43 +88,89 @@ public class BucketsHashMap<K, V> extends AbstractMap<K, V> {
 	 * @return the bucket the key is in
 	 */
 	private Collection<Entry<K, V>> getBucketFor(Object key) {
-		throw new NotYetImplementedException();
+		int hashCode = hash(key);
+		return buckets[hashCode];
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * return the size of 
 	 */
 	@Override
 	public int size() {
-		throw new NotYetImplementedException();
+		int res = 0 ;
+		for (Collection<Entry<K, V>> test : buckets) {
+			res += test.size();			
+		}
+		return res;
 	}
 
+
+
 	/**
-	 * {@inheritDoc}
+	 * put a new value to a certain key, if key is null, do nothing, if key has occurred before, return the old value and put the new value
+	 * if key is new, put it in as a new key value pair.
 	 */
 	@Override
 	public V put(K key, V value) {
-		throw new NotYetImplementedException();
+		if (key == null) {
+			return null;
+		}
+		boolean test = false;
+		for (Entry<K, V> a: this.entrySet()) {
+			if (key.equals(a.getKey())) {
+				V oldval = a.getValue();
+				a.setValue(value);
+				test = true;
+				return oldval;
+			}
+		}
+		if (!test) {
+			Entry<K,V> x = new  KeyMutableValuePair<K,V>(key,value);
+			Collection<Entry<K, V>> bucket = this.getBucketFor(key);			
+			bucket.add(x);
+		}
+		return null;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Use iterator to remove from the buckets, if value is null, do nothing and return null
+	 * if value is not null, return the value and remove it from the buckets. 
 	 */
 	@Override
 	public V remove(Object key) {
-		throw new NotYetImplementedException();
+		V value = this.get(key);
+		if (value != null) {	
+			@SuppressWarnings("unchecked")
+			Entry<K,V> x = new  KeyMutableValuePair<K,V>((K) key,value);
+			 Collection<Entry<K, V>> buc = this.getBucketFor(key);
+			 Iterator<Entry<K, V>> iterator = buc.iterator();
+			 while (iterator.hasNext()) {
+				 if (iterator.next().equals(x)) {
+					 iterator.remove();
+					 break;
+				 }
+			 }			
+			return value;		
+		}
+		return null;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * get the value of a certain key from the map, if key not in map return null
 	 */
 	@Override
-	public V get(Object key) {
-		throw new NotYetImplementedException();
+	public V get(Object key) {	
+		for (Entry<K, V> a: this.entrySet()) {
+			if (key.equals(a.getKey())) {
+				return a.getValue();
+			}		
+		}
+		return null;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * predefined method to get the entryset
 	 */
 	@Override
 	public Set<Entry<K, V>> entrySet() {
@@ -131,7 +183,7 @@ public class BucketsHashMap<K, V> extends AbstractMap<K, V> {
 						int index = count - 1;
 						return index < BucketsHashMap.this.buckets.length
 								? BucketsHashMap.this.buckets[index].iterator()
-								: null;
+										: null;
 					}
 				};
 			}

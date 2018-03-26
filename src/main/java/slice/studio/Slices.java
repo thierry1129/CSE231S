@@ -65,7 +65,7 @@ public class Slices {
 			if (i<remainder) {
 				max++;
 			}
-			Slice test = new Slice(data, i, min, max);
+			Slice<T> test = new Slice(data, i, min, max);
 			a.add(test);
 			min = max;			
 		}

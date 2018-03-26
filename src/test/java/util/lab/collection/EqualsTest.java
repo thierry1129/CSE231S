@@ -29,14 +29,19 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
+import edu.wustl.cse231s.junit.JUnitUtils;
 import util.lab.rubric.UtilRubric;
 
 /**
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
+ * 
+ *         {@link LinkedNodesCollection}
  */
-@UtilRubric(UtilRubric.Category.LIST_UNCATEGORIZED)
+@UtilRubric(UtilRubric.Category.COLLECTION_UNCATEGORIZED)
 public class EqualsTest {
 	private Collection<Integer> createBoxedPrimitiveList() {
 		Collection<Integer> list = new LinkedNodesCollection<>();
@@ -111,6 +116,9 @@ public class EqualsTest {
 
 		return list;
 	}
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void testPrimitiveRemoveFirst() {

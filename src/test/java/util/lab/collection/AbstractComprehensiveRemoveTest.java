@@ -22,8 +22,11 @@
 package util.lab.collection;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
+import edu.wustl.cse231s.junit.JUnitUtils;
 import util.lab.collection.LinkedNodesCollection;
 
 import static org.junit.Assert.*;
@@ -36,20 +39,22 @@ import java.util.LinkedList;
 /**
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
  */
+
+
 public abstract class AbstractComprehensiveRemoveTest<T> {
-	private static <T> String toString(Collection<T> list) {
-		StringBuilder sb = new StringBuilder();
-		String prefix = "[";
-
-		for (T item : list) {
-			sb.append(prefix);
-			sb.append(item);
-			prefix = ", ";
-		}
-
-		sb.append("]");
-		return sb.toString();
-	}
+//	private static <T> String toString(Collection<T> list) {
+//		StringBuilder sb = new StringBuilder();
+//		String prefix = "[";
+//
+//		for (T item : list) {
+//			sb.append(prefix);
+//			sb.append(item);
+//			prefix = ", ";
+//		}
+//
+//		sb.append("]");
+//		return sb.toString();
+//	}
 
 	protected abstract T createItem(char c);
 
@@ -97,6 +102,9 @@ public abstract class AbstractComprehensiveRemoveTest<T> {
 		return data;
 	}
 
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
+
 	@Test
 	public void testUnique() {
 		Deque<T> truthAndBeauty = new LinkedList<>();
@@ -120,11 +128,12 @@ public abstract class AbstractComprehensiveRemoveTest<T> {
 		Deque<T> truthAndBeauty = new LinkedList<>();
 		char[] data = createReversed("abracadabra");
 		Collection<T> studentList = createList(data, truthAndBeauty);
-
 		while (truthAndBeauty.isEmpty() == false) {
+			
 			for (char c : "abcdr".toCharArray()) {
 				T item = this.createItem(c);
 				removeFromBoth(truthAndBeauty, studentList, item);
+				
 			}
 		}
 	}

@@ -54,18 +54,19 @@ public class LinkedNodesCollection<E> extends AbstractCollection<E> {
 
 	/**
 	 * {@inheritDoc}
+	 * create a new iterator for linkednodescollection
 	 */
 	@Override
 	public Iterator<E> iterator() {
-		throw new NotYetImplementedException();
+		return new LinkedNodesIterator<E>(this);
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * return size of the collection
 	 */
 	@Override
 	public int size() {
-		throw new NotYetImplementedException();
+		return this.size;
 	}
 
 	/**
@@ -75,7 +76,11 @@ public class LinkedNodesCollection<E> extends AbstractCollection<E> {
 	 */
 	@Override
 	public boolean add(E item) {
-		throw new NotYetImplementedException();
+		LinkedNode<E> nowNext = head.getNext();
+		LinkedNode<E> newNext = new LinkedNode<E>(item, nowNext);		
+		head.setNext(newNext);		
+		size++;
+		return true;
 	}
 
 	/* package-private */ LinkedNode<E> getHeadNode() {

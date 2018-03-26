@@ -24,11 +24,24 @@ package edu.wustl.cse231s.junit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.rules.DisableOnDebug;
+import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
 
 /**
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
  */
 public class JUnitUtils {
+	public static TestRule createTimeoutRule() {
+		return createTimeoutRule(1L);
+	}
+
+	public static TestRule createTimeoutRule(long scale) {
+		return new DisableOnDebug(new Timeout(scale, TimeUnit.SECONDS));
+	}
+	
 	public static <A> Collection<Object[]> toParameterizedArguments(Object argA0, Object... argAs) {
 		List<Object[]> result = new ArrayList<>();
 		result.add(new Object[] { argA0 });

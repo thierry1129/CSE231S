@@ -26,7 +26,11 @@ import static org.junit.Assert.assertNull;
 
 import java.math.BigDecimal;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 import java.util.Map;
 
@@ -35,6 +39,9 @@ import java.util.Map;
  */
 public abstract class AbstractEqualsTest {
 	protected abstract <K, V> Map<K, V> createMap();
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void testPrimitiveGet() {

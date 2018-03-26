@@ -21,18 +21,24 @@
  ******************************************************************************/
 package util.lab.collection;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
-import util.lab.collection.LinkedNodesCollection;
+import edu.wustl.cse231s.junit.JUnitUtils;
 import util.lab.rubric.UtilRubric;
 
 /**
  * @author Ben Choi (benjaminchoi@wustl.edu)
+ * 
+ *         {@link LinkedNodesIterator#remove()}
  */
-@UtilRubric(UtilRubric.Category.LIST_REMOVE)
+@UtilRubric(UtilRubric.Category.ITERATOR_REMOVE)
 public class RemoveTest {
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void test() {
@@ -42,7 +48,9 @@ public class RemoveTest {
 		}
 		Integer count = 3;
 		for (Integer num : list) {
+			
 			assertTrue("Your list is not properly removing items, check your returns", list.remove(num));
+			
 			--count;
 		}
 	}

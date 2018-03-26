@@ -22,9 +22,12 @@
 package midpoint.assignment;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import count.assignment.rubric.CountRubric;
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 /**
  * @author Ben Choi
@@ -47,6 +50,9 @@ public class MidpointTest {
 		int actual = MidpointUtils.calculateMidpoint(lowerBound, upperBound);
 		assertWithinRange(message, expected - 1, expected, expected + 1, actual);
 	}
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void lowerBoundZero() {

@@ -21,6 +21,9 @@
  *******************************************************************************/
 package edu.wustl.cse231s.v5.impl;
 
+/**
+ * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
+ */
 public interface BookkeepingV5Impl extends V5Impl {
 	int getLaunchInvocationCount();
 
@@ -28,15 +31,19 @@ public interface BookkeepingV5Impl extends V5Impl {
 
 	int getFinishInvocationCount();
 
-	int getForasyncRegionInvocationCount();
+	int getForasyncInvocationCount();
 
-	int getForasync2dRegionInvocationCount();
+	int getForasyncChunkedInvovationCount();
+	
+	int getForasync2dInvocationCount();
 
-	int getForasync2dRegionChunkedInvocationCount();
+	int getForasync2dChunkedInvocationCount();
 
-	int getAsyncViaForasyncRegionCount();
+	int getAsyncViaForasyncCount();
 
 	int getTaskCount();
+
+	int getFutureInvocationCount();
 
 	void resetAllInvocationCounts();
 }

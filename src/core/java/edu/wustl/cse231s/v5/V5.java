@@ -21,10 +21,16 @@
  ******************************************************************************/
 package edu.wustl.cse231s.v5;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import edu.wustl.cse231s.v5.api.AccumulatorReducer;
@@ -38,14 +44,11 @@ import edu.wustl.cse231s.v5.api.DoubleAccumulationDeterminismPolicy;
 import edu.wustl.cse231s.v5.api.FinishAccumulator;
 import edu.wustl.cse231s.v5.api.Metrics;
 import edu.wustl.cse231s.v5.api.NumberReductionOperator;
-import edu.wustl.cse231s.v5.api.PhaserPair;
 import edu.wustl.cse231s.v5.impl.V5Impl;
 import edu.wustl.cse231s.v5.impl.executor.ExecutorV5Impl;
 import edu.wustl.cse231s.v5.options.AwaitFuturesOption;
 import edu.wustl.cse231s.v5.options.ChunkedOption;
 import edu.wustl.cse231s.v5.options.ObjectBasedIsolationOption;
-import edu.wustl.cse231s.v5.options.PhasedEmptyOption;
-import edu.wustl.cse231s.v5.options.PhasedOption;
 import edu.wustl.cse231s.v5.options.RegisterAccumulatorsOption;
 import edu.wustl.cse231s.v5.options.SingleOption;
 import edu.wustl.cse231s.v5.options.SystemPropertiesOption;
@@ -57,15 +60,16 @@ public class V5 {
 	private static AtomicReference<V5Impl> implAtom = new AtomicReference<V5Impl>(null);
 
 	private static V5Impl getImpl() {
-		return implAtom.get();
+		V5Impl impl = implAtom.get();
+		if (impl != null) {
+			return impl;
+		} else {
+			throw new IllegalStateException("launchApp() required");
+		}
 	}
 
 	private static void launch(CheckedRunnable body) throws InterruptedException, ExecutionException {
-		getImpl().launch(body);
-	}
-
-	public static void launchApp(CheckedRunnable body) {
-		launchApp(new ExecutorV5Impl(), body);
+		implAtom.get().launch(body);
 	}
 
 	public static void launchApp(V5Impl impl, CheckedRunnable body) {
@@ -82,22 +86,82 @@ public class V5 {
 		}
 	}
 
-	public static void launchApp(CheckedRunnable body, Runnable preFinalizeCallback) {
-		throw new RuntimeException();
-		// getImpl().launchHabaneroApp(body, preFinalizeCallback);
+	public static void launchApp(CheckedRunnable body) {
+		launchApp(new ExecutorV5Impl(ForkJoinPool.commonPool()), body);
+	}
+
+	public static <T> T launchAppWithReturn(CheckedCallable<T> body) {
+		class MutuableObject<T> {
+			private T value;
+		}
+		MutuableObject<T> mutuableObject = new MutuableObject<>();
+		launchApp(() -> {
+			mutuableObject.value = body.call();
+		});
+		return mutuableObject.value;
 	}
 
 	public static void launchApp(SystemPropertiesOption systemPropertiesOption, CheckedRunnable body) {
-		launchApp(systemPropertiesOption, body, null);
+		ExecutorService executorService;
+		if (systemPropertiesOption.isLinearized()) {
+			class LinearizedExecutorService extends AbstractExecutorService {
+				boolean isShutdown = false;
+				boolean isTerminated = false;
+
+				@Override
+				public void execute(Runnable command) {
+					command.run();
+				}
+
+				@Override
+				public boolean isShutdown() {
+					return isShutdown;
+				}
+
+				@Override
+				public void shutdown() {
+					this.isShutdown = true;
+				}
+
+				@Override
+				public List<Runnable> shutdownNow() {
+					this.shutdown();
+					return Collections.emptyList();
+				}
+
+				@Override
+				public boolean isTerminated() {
+					return this.isTerminated;
+				}
+
+				@Override
+				public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+					this.isTerminated = true;
+					return this.isTerminated;
+				}
+			}
+			executorService = new LinearizedExecutorService();
+		} else {
+			Integer numWorkerThreads = systemPropertiesOption.getNumWorkerThreads();
+			if (numWorkerThreads != null) {
+				executorService = Executors.newFixedThreadPool(numWorkerThreads.intValue());
+			} else {
+				executorService = ForkJoinPool.commonPool();
+			}
+		}
+		launchApp(new ExecutorV5Impl(executorService), body);
+		executorService.shutdown();
+	}
+
+	public static void launchApp(CheckedRunnable body, Runnable preFinalizeCallback) {
+		launchApp(null, body, preFinalizeCallback);
 	}
 
 	public static void launchApp(SystemPropertiesOption systemPropertiesOption, CheckedRunnable body,
 			Runnable preFinalizeCallback) {
 		throw new RuntimeException();
-		// getImpl().launchHabaneroApp(systemPropertiesOption, body,
-		// preFinalizeCallback);
 	}
-	
+
 	public static void finish(CheckedRunnable body) throws InterruptedException, ExecutionException {
 		getImpl().finish(body);
 	}
@@ -106,8 +170,8 @@ public class V5 {
 		getImpl().async(body);
 	}
 
-	public static <R> Future<R> async(CheckedCallable<R> body) {
-		return getImpl().async(body);
+	public static <R> Future<R> future(CheckedCallable<R> body) {
+		return getImpl().future(body);
 	}
 
 	public static void forseq(int min, int maxExclusive, CheckedIntConsumer body)
@@ -228,31 +292,25 @@ public class V5 {
 		getImpl().forall2d(chunkedOption, minA, maxExclusiveA, minB, maxExclusiveB, body);
 	}
 
-	public static void forseq(PhasedEmptyOption phasedEmptyOption, int min, int maxExclusive, CheckedIntConsumer body)
-			throws InterruptedException, ExecutionException {
-		getImpl().forseq(phasedEmptyOption, min, maxExclusive, body);
-	}
-
-	public static void forasync(PhasedEmptyOption phasedEmptyOption, int min, int maxExclusive, CheckedIntConsumer body)
-			throws InterruptedException, ExecutionException {
-		getImpl().forasync(phasedEmptyOption, min, maxExclusive, body);
-	}
-
-	public static void forall(PhasedEmptyOption phasedEmptyOption, int min, int maxExclusive, CheckedIntConsumer body)
-			throws InterruptedException, ExecutionException {
-		getImpl().forall(phasedEmptyOption, min, maxExclusive, body);
+	public static int numWorkerThreads() {
+		if (implAtom.get() != null) {
+			return getImpl().numWorkerThreads();
+		} else {
+			// TODO
+			// return Runtime.getRuntime().availableProcessors();
+			throw new RuntimeException();
+		}
 	}
 
 	public static boolean isLaunched() {
-		return getImpl() != null;
-	}
-
-	public static int numWorkerThreads() {
-		return Runtime.getRuntime().availableProcessors();
+		return implAtom.get() != null;
 	}
 
 	public static void doWork(long n) {
-		getImpl().doWork(n);
+		V5Impl impl = implAtom.get();
+		if (impl != null) {
+			impl.doWork(n);
+		}
 	}
 
 	public static void dumpStatistics() {
@@ -260,23 +318,6 @@ public class V5 {
 	}
 
 	public static Metrics abstractMetrics() {
-		throw new RuntimeException();
-	}
-
-	@Deprecated
-	public static Phaser newPhaser() {
-		return new Phaser();
-	}
-
-	public static void phaserNext() {
-		throw new RuntimeException();
-	}
-
-	public static void phaserAwait(Phaser phaser) {
-		throw new RuntimeException();
-	}
-
-	public static void phaserSignal(Phaser phaser) {
 		throw new RuntimeException();
 	}
 
@@ -306,53 +347,40 @@ public class V5 {
 		return new ObjectBasedIsolationOption(participantA, participantB, participantsCtoZ);
 	}
 
-	public static PhasedOption phased(PhaserPair phaserPairA, PhaserPair... phaserPairsBtoZ) {
-		return new PhasedOption(phaserPairA, phaserPairsBtoZ);
-	}
-
-	public static PhasedEmptyOption phased() {
-		return new PhasedEmptyOption();
-	}
-
 	public static SingleOption single(Runnable runnable) {
 		return new SingleOption(runnable);
-	}
-
-	public static void async(PhasedOption phasedOption, CheckedRunnable body) {
-		throw new RuntimeException();
 	}
 
 	public static void async(AwaitFuturesOption awaitFuturesOption, CheckedRunnable body) {
 		getImpl().async(awaitFuturesOption, body);
 	}
 
-	public static <R> Future<R> async(AwaitFuturesOption awaitFuturesOption, CheckedCallable<R> body) {
-		return getImpl().async(awaitFuturesOption, body);
+	public static <R> Future<R> future(AwaitFuturesOption awaitFuturesOption, CheckedCallable<R> body) {
+		return getImpl().future(awaitFuturesOption, body);
 	}
 
 	public static void finish(RegisterAccumulatorsOption registerAccumulatorsOption, CheckedRunnable body)
 			throws InterruptedException, ExecutionException {
-		throw new RuntimeException();
-		// getImplementation().finish(registerAccumulatorsOption.getAccumulators(),
-		// body);
+		getImpl().finish(registerAccumulatorsOption, body);
+	}
+
+	private static ContentionLevel getDefaultContentionLevel() {
+		// TODO
+		return ContentionLevel.LOW;
 	}
 
 	public static FinishAccumulator<Integer> newIntegerFinishAccumulator(NumberReductionOperator operator,
 			ContentionLevel contentionLevel) {
-		throw new RuntimeException();
-		// return getImplementation().newIntegerFinishAccumulator(operator,
-		// contentionLevel);
+		return getImpl().newIntegerFinishAccumulator(operator, contentionLevel);
 	}
 
 	public static FinishAccumulator<Integer> newIntegerFinishAccumulator(NumberReductionOperator operator) {
-		return newIntegerFinishAccumulator(operator, ContentionLevel.HIGH);
+		return newIntegerFinishAccumulator(operator, getDefaultContentionLevel());
 	}
 
 	public static FinishAccumulator<Double> newDoubleFinishAccumulator(NumberReductionOperator operator,
 			ContentionLevel contentionLevel, DoubleAccumulationDeterminismPolicy determinismPolicy) {
-		throw new RuntimeException();
-		// return getImplementation().newDoubleFinishAccumulator(operator,
-		// contentionLevel, determinismPolicy);
+		return getImpl().newDoubleFinishAccumulator(operator, contentionLevel, determinismPolicy);
 	}
 
 	public static FinishAccumulator<Double> newDoubleFinishAccumulator(NumberReductionOperator operator,
@@ -361,18 +389,16 @@ public class V5 {
 	}
 
 	public static FinishAccumulator<Double> newDoubleFinishAccumulator(NumberReductionOperator operator) {
-		return newDoubleFinishAccumulator(operator, ContentionLevel.HIGH);
+		return newDoubleFinishAccumulator(operator, getDefaultContentionLevel());
 	}
 
 	public static <T> FinishAccumulator<T> newReducerFinishAccumulator(AccumulatorReducer<T> reducer,
 			ContentionLevel contentionLevel) {
-		throw new RuntimeException();
-		// return getImplementation().newReducerFinishAccumulator(reducer,
-		// contentionLevel);
+		return getImpl().newReducerFinishAccumulator(reducer, contentionLevel);
 	}
 
 	public static <T> FinishAccumulator<T> newReducerFinishAccumulator(AccumulatorReducer<T> reducer) {
-		return newReducerFinishAccumulator(reducer, ContentionLevel.HIGH);
+		return newReducerFinishAccumulator(reducer, getDefaultContentionLevel());
 	}
 
 	@Deprecated

@@ -29,15 +29,21 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import edu.wustl.cse231s.junit.JUnitUtils;
 import slice.core.Slice;
 
 /**
+ * @author Finn Voichick
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
+ * 
+ *         {@link Slices}
  */
 @RunWith(Parameterized.class)
 public class SlicesTest {
@@ -48,6 +54,9 @@ public class SlicesTest {
 		this.data = new Object[length];
 		this.numSlices = numSlices;
 	}
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void test() {

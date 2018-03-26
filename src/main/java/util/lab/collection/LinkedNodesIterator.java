@@ -34,32 +34,63 @@ import net.jcip.annotations.NotThreadSafe;
  */
 @NotThreadSafe
 /* package-private */ class LinkedNodesIterator<E> implements Iterator<E> {
-
+	private LinkedNode<E> curr;
+	private LinkedNode<E> prevNode;
+	private boolean move;
+	private LinkedNodesCollection<E> collectionList;
 	public LinkedNodesIterator(LinkedNodesCollection<E> collection) {
-		throw new NotYetImplementedException();
+		curr = collection.getHeadNode();
+		prevNode = null;
+		move = false;
+		collectionList = collection;		
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * a function to check if the current node has next node
 	 */
 	@Override
-	public boolean hasNext() {
-		throw new NotYetImplementedException();
+	public boolean hasNext() {			
+		return curr.getNext() != null;
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * the next function of iterator, if current node or next node is null, throw no such element exception
+	 * else, update the current and previous node to reflect the move. and set move boolean to true
 	 */
 	@Override
 	public E next() {
-		throw new NotYetImplementedException();
+		move = true;
+		if (curr == null || curr.getNext() == null) {
+			throw new NoSuchElementException();
+		} 
+	
+		E val = curr.getNext().getValue();
+		prevNode = curr;
+		curr = curr.getNext();
+		return val;
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * iterator remove function, if haven't called move yet, or current node or previous node null, throw a illegalstateexception
+	 * else, remove currentnode, set move to false, decrease size
 	 */
 	@Override
 	public void remove() {
-		throw new NotYetImplementedException();
+		if (!move) {
+			throw new IllegalStateException();
+		}
+		if (curr == null || prevNode == null) {
+			//return;
+			throw new IllegalStateException();
+		}
+		else {
+			prevNode.setNext(curr.getNext());
+			curr = prevNode;
+			collectionList.decrementSize();
+			move = false;
+		}
 	}
 }

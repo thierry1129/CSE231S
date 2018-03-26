@@ -24,15 +24,24 @@ package edu.wustl.cse231s.v5.impl;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import edu.wustl.cse231s.v5.api.AccumulatorReducer;
 import edu.wustl.cse231s.v5.api.CheckedCallable;
 import edu.wustl.cse231s.v5.api.CheckedConsumer;
 import edu.wustl.cse231s.v5.api.CheckedIntConsumer;
 import edu.wustl.cse231s.v5.api.CheckedIntIntConsumer;
 import edu.wustl.cse231s.v5.api.CheckedRunnable;
+import edu.wustl.cse231s.v5.api.ContentionLevel;
+import edu.wustl.cse231s.v5.api.DoubleAccumulationDeterminismPolicy;
+import edu.wustl.cse231s.v5.api.FinishAccumulator;
+import edu.wustl.cse231s.v5.api.Metrics;
+import edu.wustl.cse231s.v5.api.NumberReductionOperator;
 import edu.wustl.cse231s.v5.options.AwaitFuturesOption;
 import edu.wustl.cse231s.v5.options.ChunkedOption;
-import edu.wustl.cse231s.v5.options.PhasedEmptyOption;
+import edu.wustl.cse231s.v5.options.RegisterAccumulatorsOption;
 
+/**
+ * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
+ */
 public interface V5Impl {
 	void launch(CheckedRunnable body) throws InterruptedException, ExecutionException;
 
@@ -40,7 +49,7 @@ public interface V5Impl {
 
 	void async(CheckedRunnable body);
 
-	<R> Future<R> async(CheckedCallable<R> body);
+	<R> Future<R> future(CheckedCallable<R> body);
 
 	void forseq(int min, int maxExclusive, CheckedIntConsumer body) throws InterruptedException, ExecutionException;
 
@@ -105,18 +114,24 @@ public interface V5Impl {
 	void forall2d(ChunkedOption chunkedOption, int minA, int maxExclusiveA, int minB, int maxExclusiveB,
 			CheckedIntIntConsumer body) throws InterruptedException, ExecutionException;
 
-	void forseq(PhasedEmptyOption phasedEmptyOption, int min, int maxExclusive, CheckedIntConsumer body)
+	void finish(RegisterAccumulatorsOption registerAccumulatorsOption, CheckedRunnable body)
 			throws InterruptedException, ExecutionException;
 
-	void forasync(PhasedEmptyOption phasedEmptyOption, int min, int maxExclusive, CheckedIntConsumer body)
-			throws InterruptedException, ExecutionException;
+	FinishAccumulator<Integer> newIntegerFinishAccumulator(NumberReductionOperator operator,
+			ContentionLevel contentionLevel);
 
-	void forall(PhasedEmptyOption phasedEmptyOption, int min, int maxExclusive, CheckedIntConsumer body)
-			throws InterruptedException, ExecutionException;
+	FinishAccumulator<Double> newDoubleFinishAccumulator(NumberReductionOperator operator,
+			ContentionLevel contentionLevel, DoubleAccumulationDeterminismPolicy determinismPolicy);
+
+	<T> FinishAccumulator<T> newReducerFinishAccumulator(AccumulatorReducer<T> reducer, ContentionLevel contentionLevel);
 
 	void async(AwaitFuturesOption awaitFuturesOption, CheckedRunnable body);
 
-	<R> Future<R> async(AwaitFuturesOption awaitFuturesOption, CheckedCallable<R> body);
-	
+	<R> Future<R> future(AwaitFuturesOption awaitFuturesOption, CheckedCallable<R> body);
+
+	int numWorkerThreads();
+
 	void doWork(long n);
+
+	Metrics getMetrics();
 }

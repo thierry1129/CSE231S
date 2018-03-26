@@ -27,15 +27,21 @@ import static org.junit.Assert.assertNull;
 
 import java.util.Map;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 /**
  * @author Ben Choi (benjaminchoi@wustl.edu)
  */
 
 public abstract class AbstractComputeTest {
-
 	protected abstract <K, V> Map<K, V> createMap();
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void test() {

@@ -24,10 +24,13 @@ package count.assignment;
 import static edu.wustl.cse231s.v5.V5.launchApp;
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import count.assignment.rubric.CountRubric;
 import edu.wustl.cse231s.bioinformatics.Nucleobase;
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 /**
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
@@ -35,6 +38,9 @@ import edu.wustl.cse231s.bioinformatics.Nucleobase;
  *         {@link NucleobaseCounting}
  */
 public class IsolatedNucleobaseTest {
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
+
 	@Test
 	@CountRubric(CountRubric.Category.SEQUENTIAL)
 	public void justASequential() {

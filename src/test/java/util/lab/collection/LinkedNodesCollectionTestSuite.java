@@ -29,9 +29,10 @@ import org.junit.runners.Suite;
  */
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ PutTest.class, RemoveTest.class, PrimitiveComprehensiveRemoveTest.class,
+@Suite.SuiteClasses({ AddTest.class, RemoveTest.class, PrimitiveComprehensiveRemoveTest.class,
 		NonPrimitiveComprehensiveRemoveTest.class, EqualsTest.class, CollectionAddRemoveTest.class,
-		IteratorNextNoSuchElementExceptionTest.class, IteratorRemoveNoSuchElementExceptionTest.class })
+		IteratorNextNoSuchElementExceptionTest.class, RemoveAllViaIteratorTest.class,
+		IteratorRemoveIllegalStateExceptionTest.class })
 
 public class LinkedNodesCollectionTestSuite {
 }

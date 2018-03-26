@@ -29,7 +29,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 /**
  * @author Ben Choi (benjaminchoi@wustl.edu)
@@ -37,6 +41,9 @@ import org.junit.Test;
 
 public abstract class AbstractComprehensiveTest {
 	protected abstract <K, V> Map<K, V> createMap();
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void test() {

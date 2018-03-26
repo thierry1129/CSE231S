@@ -29,8 +29,9 @@ import org.junit.runners.Suite;
  */
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({ BucketsPutTest.class, BucketsRemoveTest.class, BucketsGetTest.class, BucketsCollisionTest.class,
-		BucketsComputeTest.class, BucketsWordCountComputeTest.class, BucketsEqualsTest.class,
-		BucketsComprehensiveTest.class, })
+@Suite.SuiteClasses({ BucketsPutTest.class, BucketsPutReturnValueTest.class, BucketsRemoveTest.class,
+		BucketsRemoveReturnValueTest.class, BucketsGetTest.class, BucketsCollisionTest.class, BucketsComputeTest.class,
+		BucketsWordCountComputeTest.class, BucketsEqualsTest.class, BucketsComprehensiveTest.class,
+		BucketsSizeAfterRemoveTest.class })
 public class BucketsHashMapTestSuite {
 }

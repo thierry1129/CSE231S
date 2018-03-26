@@ -30,7 +30,11 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+
+import edu.wustl.cse231s.junit.JUnitUtils;
 
 /**
  * @author Dennis Cosgrove (http://www.cse.wustl.edu/~cosgroved/)
@@ -83,6 +87,9 @@ public abstract class AbstractCollisionTest {
 	}
 
 	protected abstract <K, V> Map<K, V> createMap();
+
+	@Rule
+	public TestRule timeout = JUnitUtils.createTimeoutRule();
 
 	@Test
 	public void testPut() {

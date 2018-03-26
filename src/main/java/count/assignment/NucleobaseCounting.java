@@ -77,8 +77,8 @@ public class NucleobaseCounting {
 
 
 		}
-		
-	
+
+
 		return result;
 
 
@@ -122,9 +122,6 @@ public class NucleobaseCounting {
 	public static int countParallelLowerUpperSplit(byte[] chromosome, Nucleobase targetNucleobase)
 			throws InterruptedException, ExecutionException {
 
-		final int firstHalf ;
-		final int secondHalf ;
-
 		final int[] arr = new int[2];
 		finish(() -> {
 
@@ -144,12 +141,7 @@ public class NucleobaseCounting {
 					}
 				}
 			});
-
-
-
-
 		});
-
 		return arr[0]+arr[1];
 
 	}
@@ -267,94 +259,133 @@ public class NucleobaseCounting {
 	 * @throws InterruptedException,
 	 *             ExecutionException
 	 */
-	static List<PairInt> resultList = new ArrayList<PairInt>();
+
+	//
+	//		static int countParallelDivideAndConquerKernel(byte[] chromosome, Nucleobase targetNucleobase, int threshold,
+	//				int min, int maxExclusive) throws InterruptedException, ExecutionException {
+	//			resultList = new ArrayList<PairInt>();
+	//			int start = min;
+	//			int end  = maxExclusive;
+	//			
+	//		
+	//			organize(min,maxExclusive,threshold);
+	//			final int[] sum = new int[resultList.size()];
+	//			
+	//			
+	//			finish(() -> {
+	//				for (int c = 0 ;c<resultList.size();c++) {
+	//					final int cp = c;
+	//					async(() -> {
+	//						int minTarget = resultList.get(cp).getMin();
+	//						int maxTarget = resultList.get(cp).getMax();				
+	//						sum[cp]+=countRangeSequential(chromosome, targetNucleobase, minTarget, maxTarget);
+	//					});
+	//				}
+	//			});
+	//	
+	//			int actualResult = 0;
+	//			for(int d : sum) {
+	//				actualResult +=d;
+	//			}
+	//	
+	//			return actualResult;
+	//	
+	//	
+	//		}
+
+
+
 	static int countParallelDivideAndConquerKernel(byte[] chromosome, Nucleobase targetNucleobase, int threshold,
 			int min, int maxExclusive) throws InterruptedException, ExecutionException {
-		resultList = new ArrayList<PairInt>();
-		int start = min;
-		int end  = maxExclusive;
-		
+		final int[] sum = new int[(maxExclusive-min)/threshold+1];
 	
-		organize(min,maxExclusive,threshold);
-		final int[] sum = new int[resultList.size()];
 		
-		
-		finish(() -> {
-			for (int c = 0 ;c<resultList.size();c++) {
-				final int cp = c;
-				async(() -> {
-					int minTarget = resultList.get(cp).getMin();
-					int maxTarget = resultList.get(cp).getMax();				
-					sum[cp]+=countRangeSequential(chromosome, targetNucleobase, minTarget, maxTarget);
+		if (maxExclusive-min<threshold) {	
+			int res = countRangeSequential(chromosome, targetNucleobase, min, maxExclusive);
+			return res;
+		}
 
+		else {
+			int mid = (min+maxExclusive)/2;
+			final int sum2[]  =  {0,0};
+			finish(() -> {
+				async(() ->{
+					sum2[0]+= 	countParallelDivideAndConquerKernel(chromosome,targetNucleobase,threshold,min,mid);
 				});
-
-
-			}
-		});
-
-		int actualResult = 0;
-		for(int d : sum) {
-			actualResult +=d;
-		}
-
-		return actualResult;
-
+				sum2[1] += countParallelDivideAndConquerKernel(chromosome,targetNucleobase,threshold,mid,maxExclusive);
+			});
+			return  countSum(sum2);
+		}	
 
 	}
 
 
-
-	public static List<PairInt> organize(int min, int max, int threshold) {
-		
-		if (max-min<threshold) {			
-			PairInt a = new PairInt(min,max);			
-			resultList.add(a);
-			return resultList;
+	static int countSum(int[] tst) {
+		int res = 0;
+		for (int a : tst ) {
+			res += a;
 		}
-
-		int mid = (min+max)/2;
-
-		organize(min,mid,threshold);
-		organize(mid,max,threshold);
-
-		return resultList;
+		return res;
 	}
 
+//	public static List<PairInt> organize(int min, int max, int threshold) {
+//
+//		if (max-min<threshold) {			
+//			PairInt a = new PairInt(min,max);			
+//			resultList.add(a);
+//			return resultList;
+//		}
+//
+//		int mid = (min+max)/2;
+//		organize(min,mid,threshold);
+//		organize(mid,max,threshold);
+//		return resultList;
+//	}
 
+//	public static void main(String[] args) throws InterruptedException, ExecutionException {
+//
+//
+//		byte[] chrmo = "AAAAAAAAAA".getBytes();
+//		Nucleobase targetNucleobase =  Nucleobase.ADENINE;
+//
+//		int threshold = 8;
+//		System.out.println(countParallelDivideAndConquer(chrmo, targetNucleobase,threshold));
+//
+//
+//	}
 }
 
-
-class PairInt
-{
-	private int vmin;
-	private int vmax;
-
-	public PairInt(int min, int max)
-	{
-		vmin=min;
-		vmax=max;
-	}
-	public int getMin() {
-		return vmin;
-	}
-
-	public int getMax() {
-		return vmax;
-	}
-	public void setMin(int min) {
-		this.vmin = min;
-	}
-	public void setMax(int max) {
-		this.vmax = max;
-	}
-	public String toString() {
-		String result = "( "+vmin+" , "+vmax+" )";
-		return result;
-
-	}
-
-}
+//
+//class PairInt
+//{
+//	private int vmin;
+//	private int vmax;
+//
+//	public PairInt(int min, int max)
+//	{
+//		vmin=min;
+//		vmax=max;
+//	}
+//	public int getMin() {
+//		return vmin;
+//	}
+//
+//	public int getMax() {
+//		return vmax;
+//	}
+//	public void setMin(int min) {
+//		this.vmin = min;
+//	}
+//	public void setMax(int max) {
+//		this.vmax = max;
+//	}
+//	public String toString() {
+//		String result = "( "+vmin+" , "+vmax+" )";
+//		return result;
+//
+//	}
+//
+//}
 
 
 
